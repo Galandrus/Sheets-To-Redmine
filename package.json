@@ -1,0 +1,20 @@
+{
+  "name": "script-redmine",
+  "version": "1.0.0",
+  "main": "./lib/main.js",
+  "author": "Martin Galan",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc --build",
+    "start": "tsc --build && node ./lib/main.js"
+  },
+  "dependencies": {
+    "@types/gapi": "^0.0.41",
+    "@types/node": "10.17.27",
+    "axios": "^0.21.1",
+    "googleapis": "39",
+    "moment": "^2.29.1",
+    "ts-node": "10.1.0",
+    "typescript": "~3.9.7"
+  }
+}
