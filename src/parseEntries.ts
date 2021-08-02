@@ -5,6 +5,7 @@ import {
   EntryType,
   LoadByDayType,
   LoadedResponse,
+  REDMINE_URL,
   TasksType,
 } from "./types";
 
@@ -65,15 +66,33 @@ export const splitByTask = (entries: EntryType[]) => {
 export const parseLoadTask = (
   entries: EntryType[],
   loadEntries: LoadByDayType[]
-): LoadedResponse[] => {
+) => {
   return entries.map((entry) => {
-    if (entry.loaded === LoadedResponse.OK) return entry.loaded;
+    if (entry.loaded === LoadedResponse.OK) return [entry.loaded];
 
     const findTask = loadEntries.find(
       (loadEntry) =>
         loadEntry.date === entry.date && loadEntry.task === entry.name
     );
-
-    return findTask ? findTask.load : LoadedResponse.EMPTY;
+    return [
+      findTask ? findTask.load : LoadedResponse.EMPTY,
+      findTask.entryId ? loadUrl(findTask.entryId) : LoadedResponse.EMPTY,
+    ];
   });
+};
+
+export const parseToColumns = (entries: string[][]) => {
+  let load = [];
+  let url = [];
+
+  entries.forEach((entry) => {
+    load = load.concat(entry[0]);
+    url = url.concat(entry[1]);
+  });
+
+  return [load, url];
+};
+
+const loadUrl = (id: number) => {
+  return `${REDMINE_URL}/time_entries/${id}/edit`;
 };

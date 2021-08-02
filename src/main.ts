@@ -4,6 +4,7 @@ import {
   filterLoadedEntries,
   mapData,
   parseLoadTask,
+  parseToColumns,
   splitByDays,
   splitByTask,
 } from "./parseEntries";
@@ -47,13 +48,16 @@ async function main() {
   const addLoadToEntries = parseLoadTask(entries, loadHours.flat());
   // console.log(addLoadToEntries);
 
+  const columnsInputs = parseToColumns(addLoadToEntries);
+  console.log(columnsInputs);
+
   await sheets.update({
     spreadsheetId,
     range: `${WORK_SHEET_NAME}!${WORK_SHEET_LOAD_CELL}`,
     valueInputOption: "USER_ENTERED",
     requestBody: {
-      majorDimension: "COLUMNS",
-      values: [addLoadToEntries],
+      majorDimension: "ROWS",
+      values: addLoadToEntries,
     },
   });
 }

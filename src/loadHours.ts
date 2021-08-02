@@ -1,15 +1,16 @@
 import axios from "axios";
+import moment from "moment";
 import credentials from "./credentials.json";
 import {
-  DateTasksType,
   EntryType,
   LoadByDayType,
   LoadedResponse,
+  REDMINE_URL,
   TasksType,
 } from "./types";
 
 const axiosClient = axios.create({
-  baseURL: "http://redmine.snappler.com",
+  baseURL: REDMINE_URL,
   headers: {
     "X-Redmine-API-Key": credentials.redmine_api_key,
   },
@@ -17,9 +18,9 @@ const axiosClient = axios.create({
 
 export const entryHourToRedmine = async (
   entry: EntryType
-): Promise<boolean> => {
+): Promise<{ result: boolean; entryId?: number }> => {
   try {
-    await axiosClient.post("/time_entries", {
+    const result = await axiosClient.post("/time_entries.json", {
       time_entry: {
         issue_id: entry.issue,
         spent_on: entry.date,
@@ -28,10 +29,16 @@ export const entryHourToRedmine = async (
       },
     });
 
-    return true;
+    return { result: true, entryId: result.data.time_entry.id };
   } catch (error) {
-    console.log("An error occurred when loaded hours to redmine:", error);
-    return false;
+    console.log(
+      "An error occurred when loaded hours to redmine:",
+      error.response.status,
+      error.response.statusText,
+      error.response
+    );
+
+    return { result: false };
   }
 };
 
@@ -43,19 +50,22 @@ export const loadHours = async (
       task: entry.name,
       date: entry.date,
       load: LoadedResponse.EMPTY,
+      entryId: undefined,
     };
 
-    if (!entry.date) return response;
+    if (!entry.date || !entry.issue) return response;
+
     if (entry.loaded === LoadedResponse.OK)
       return { ...response, load: entry.loaded };
 
     console.log("Load ", entry.spendTime, "to the task ", entry.name);
-    // const response = await entryHourToRedmine(entry);
-    const loadResponse = Math.random() < 0.5;
+    const { result, entryId } = await entryHourToRedmine(entry);
+    // const loadResponse = Math.random() < 0.5;
 
     return {
       ...response,
-      load: loadResponse ? LoadedResponse.OK : LoadedResponse.LEFT,
+      entryId,
+      load: result ? LoadedResponse.OK : LoadedResponse.LEFT,
     };
   });
 
