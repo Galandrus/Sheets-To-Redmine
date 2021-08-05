@@ -18,7 +18,7 @@ const axiosClient = axios.create({
 
 export const entryHourToRedmine = async (
   entry: EntryType
-): Promise<{ result: boolean; entryId?: number }> => {
+): Promise<{ result: boolean; entryId?: string }> => {
   try {
     const result = await axiosClient.post("/time_entries.json", {
       time_entry: {
@@ -32,10 +32,11 @@ export const entryHourToRedmine = async (
     return { result: true, entryId: result.data.time_entry.id };
   } catch (error) {
     console.log(
-      "An error occurred when loaded hours to redmine:",
-      error.response.status,
-      error.response.statusText,
-      error.response
+      "An error occurred when loaded hours to redmine.",
+      "issue",
+      entry.issue,
+      "name",
+      entry.name
     );
 
     return { result: false };
@@ -55,10 +56,10 @@ export const loadHours = async (
 
     if (!entry.date || !entry.issue) return response;
 
-    if (entry.loaded === LoadedResponse.OK)
-      return { ...response, load: entry.loaded };
+    if (entry.loaded !== undefined) return { ...response, load: entry.loaded };
 
     console.log("Load ", entry.spendTime, "to the task ", entry.name);
+
     const { result, entryId } = await entryHourToRedmine(entry);
     // const loadResponse = Math.random() < 0.5;
 

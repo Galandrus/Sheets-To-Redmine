@@ -5,7 +5,7 @@ export type EntryType = {
   comment: string;
   project: string;
   spendTime: any;
-  loaded: LoadedResponse;
+  loaded: string;
 };
 
 export type DateTasksType = {
@@ -19,8 +19,8 @@ export type TasksType = {
 export type LoadByDayType = {
   task: string;
   date: string;
-  load: LoadedResponse;
-  entryId?: number;
+  load: string;
+  entryId?: string;
 };
 
 export enum LoadedResponse {

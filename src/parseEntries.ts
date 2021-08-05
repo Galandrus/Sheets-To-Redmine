@@ -18,14 +18,14 @@ export const mapData = (data: Sheets.Schema$ValueRange): EntryType[] => {
       comment: row[3],
       project: row[4],
       spendTime: row[7],
-      loaded: row[8] as LoadedResponse,
+      loaded: row[8],
     })
   );
 };
 
 export const filterLoadedEntries = (entries: EntryType[]) => {
   return entries.filter(
-    (entry) => entry.date !== undefined && entry.loaded !== LoadedResponse.OK
+    (entry) => entry.date !== undefined && entry.loaded === undefined
   );
 };
 
@@ -68,16 +68,16 @@ export const parseLoadTask = (
   loadEntries: LoadByDayType[]
 ) => {
   return entries.map((entry) => {
-    if (entry.loaded === LoadedResponse.OK) return [entry.loaded];
+    if (entry.loaded !== undefined) return generateHyperlink(entry.loaded);
 
     const findTask = loadEntries.find(
       (loadEntry) =>
         loadEntry.date === entry.date && loadEntry.task === entry.name
     );
-    return [
-      findTask ? findTask.load : LoadedResponse.EMPTY,
-      findTask.entryId ? loadUrl(findTask.entryId) : LoadedResponse.EMPTY,
-    ];
+
+    return findTask?.entryId
+      ? generateHyperlink(findTask.entryId)
+      : LoadedResponse.EMPTY;
   });
 };
 
@@ -93,6 +93,8 @@ export const parseToColumns = (entries: string[][]) => {
   return [load, url];
 };
 
-const loadUrl = (id: number) => {
-  return `${REDMINE_URL}/time_entries/${id}/edit`;
+const generateHyperlink = (id: string) => {
+  const url = `${REDMINE_URL}/time_entries/${id}/edit`;
+
+  return `=HIPERVINCULO("${url}";"${id}")`;
 };

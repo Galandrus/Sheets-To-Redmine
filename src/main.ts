@@ -43,21 +43,21 @@ async function main() {
   // console.log(tasksPerDay);
 
   const loadHours = await loadHoursPerDay(tasksPerDay);
-  console.log(loadHours.flat());
+  // console.log(loadHours.flat());
 
   const addLoadToEntries = parseLoadTask(entries, loadHours.flat());
-  // console.log(addLoadToEntries);
+  console.log(addLoadToEntries);
 
-  const columnsInputs = parseToColumns(addLoadToEntries);
-  console.log(columnsInputs);
+  // const columnsInputs = parseToColumns(addLoadToEntries);
+  // console.log(columnsInputs);
 
   await sheets.update({
     spreadsheetId,
     range: `${WORK_SHEET_NAME}!${WORK_SHEET_LOAD_CELL}`,
     valueInputOption: "USER_ENTERED",
     requestBody: {
-      majorDimension: "ROWS",
-      values: addLoadToEntries,
+      majorDimension: "COLUMNS",
+      values: [addLoadToEntries],
     },
   });
 }
