@@ -6,6 +6,7 @@ export type EntryType = {
   project: string;
   spendTime: any;
   loaded: string;
+  updateField: string;
 };
 
 export type DateTasksType = {
@@ -28,9 +29,3 @@ export enum LoadedResponse {
   LEFT = "LEFT",
   EMPTY = "",
 }
-
-export const WORK_SHEET_NAME = "Agosto";
-export const WORK_SHEET_RANGE = "B3:J1000";
-export const WORK_SHEET_LOAD_CELL = "J3";
-
-export const REDMINE_URL = "https://test-redmine.snappler-app.com";

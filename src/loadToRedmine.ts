@@ -1,13 +1,7 @@
 import axios from "axios";
-import moment from "moment";
 import credentials from "./credentials.json";
-import {
-  EntryType,
-  LoadByDayType,
-  LoadedResponse,
-  REDMINE_URL,
-  TasksType,
-} from "./types";
+import { REDMINE_URL } from "./configs";
+import { EntryType, LoadByDayType, LoadedResponse, TasksType } from "./types";
 
 const axiosClient = axios.create({
   baseURL: REDMINE_URL,
@@ -43,7 +37,7 @@ export const entryHourToRedmine = async (
   }
 };
 
-export const loadHours = async (
+export const loadRedmine = async (
   data: EntryType[]
 ): Promise<LoadByDayType[]> => {
   const loadedResponses = data.map(async (entry): Promise<LoadByDayType> => {
@@ -58,10 +52,19 @@ export const loadHours = async (
 
     if (entry.loaded !== undefined) return { ...response, load: entry.loaded };
 
-    console.log("Load ", entry.spendTime, "to the task ", entry.name);
-
     const { result, entryId } = await entryHourToRedmine(entry);
-    // const loadResponse = Math.random() < 0.5;
+    // const result = Math.random() < 0.5;
+    // const entryId = result ? "9999" : undefined;
+
+    result &&
+      console.log(
+        "Load",
+        entry.spendTime,
+        "to the task",
+        entry.name,
+        "on",
+        entry.date
+      );
 
     return {
       ...response,
@@ -73,11 +76,11 @@ export const loadHours = async (
   return Promise.all(loadedResponses);
 };
 
-export const loadHoursPerDay = async (
+export const loadHoursToRedmineByDay = async (
   data: TasksType[]
 ): Promise<LoadByDayType[][]> => {
   const loadResponses = Object.values(data).map(async (dayEntries) => {
-    const response = await loadHours(Object.values(dayEntries));
+    const response = await loadRedmine(Object.values(dayEntries));
 
     return response;
   });

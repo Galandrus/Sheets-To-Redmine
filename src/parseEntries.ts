@@ -1,15 +1,14 @@
 import moment from "moment";
 import { sheets_v4 as Sheets } from "googleapis";
-import {
-  DateTasksType,
-  EntryType,
-  LoadByDayType,
-  LoadedResponse,
-  REDMINE_URL,
-  TasksType,
-} from "./types";
+import { WORK_SHEET_LOAD_CELL } from "./configs";
+import { DateTasksType, EntryType, TasksType } from "./types";
 
-export const mapData = (data: Sheets.Schema$ValueRange): EntryType[] => {
+export const mapDataFromSheets = (
+  data: Sheets.Schema$ValueRange
+): EntryType[] => {
+  const loadFieldLetter = WORK_SHEET_LOAD_CELL[0];
+  let loadFieldNumber = Number(WORK_SHEET_LOAD_CELL[1]);
+
   return data.values.map(
     (row: string[]): EntryType => ({
       date: row[0],
@@ -19,6 +18,7 @@ export const mapData = (data: Sheets.Schema$ValueRange): EntryType[] => {
       project: row[4],
       spendTime: row[7],
       loaded: row[8],
+      updateField: `${loadFieldLetter}${loadFieldNumber++}`,
     })
   );
 };
@@ -29,7 +29,16 @@ export const filterLoadedEntries = (entries: EntryType[]) => {
   );
 };
 
-export const splitByDays = (entries: EntryType[]) => {
+export const getTasksPerDey = (filterEntries: EntryType[]) => {
+  const entriesPerDay = splitEntriesByDays(filterEntries);
+  // console.log(entriesPerDay);
+
+  return Object.keys(entriesPerDay).map((day) =>
+    splitEntriesByTask(entriesPerDay[day])
+  );
+};
+
+const splitEntriesByDays = (entries: EntryType[]) => {
   return entries.reduce(
     (days: DateTasksType, entry: EntryType): DateTasksType => {
       days[entry.date] = (days[entry.date] || []).concat(entry);
@@ -40,7 +49,8 @@ export const splitByDays = (entries: EntryType[]) => {
   );
 };
 
-export const splitByTask = (entries: EntryType[]) => {
+const splitEntriesByTask = (entries: EntryType[]) => {
+  const concatString = " - ";
   return entries.reduce((tasks: TasksType, entry: EntryType): TasksType => {
     const currentTask = tasks[entry.name];
 
@@ -54,6 +64,16 @@ export const splitByTask = (entries: EntryType[]) => {
 
       currentTask.spendTime = taskSpend.format("H:mm");
 
+      if (
+        entry.comment &&
+        !currentTask.comment.split(concatString).includes(entry.comment)
+      ) {
+        currentTask.comment = currentTask.comment.concat(
+          concatString,
+          entry.comment
+        );
+      }
+
       tasks[entry.name] = currentTask;
     } else {
       tasks[entry.name] = entry;
@@ -61,40 +81,4 @@ export const splitByTask = (entries: EntryType[]) => {
 
     return tasks;
   }, {});
-};
-
-export const parseLoadTask = (
-  entries: EntryType[],
-  loadEntries: LoadByDayType[]
-) => {
-  return entries.map((entry) => {
-    if (entry.loaded !== undefined) return generateHyperlink(entry.loaded);
-
-    const findTask = loadEntries.find(
-      (loadEntry) =>
-        loadEntry.date === entry.date && loadEntry.task === entry.name
-    );
-
-    return findTask?.entryId
-      ? generateHyperlink(findTask.entryId)
-      : LoadedResponse.EMPTY;
-  });
-};
-
-export const parseToColumns = (entries: string[][]) => {
-  let load = [];
-  let url = [];
-
-  entries.forEach((entry) => {
-    load = load.concat(entry[0]);
-    url = url.concat(entry[1]);
-  });
-
-  return [load, url];
-};
-
-const generateHyperlink = (id: string) => {
-  const url = `${REDMINE_URL}/time_entries/${id}/edit`;
-
-  return `=HIPERVINCULO("${url}";"${id}")`;
 };
